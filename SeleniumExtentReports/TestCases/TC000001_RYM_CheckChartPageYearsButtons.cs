@@ -14,8 +14,6 @@ namespace Selenium.TestCases
         {
             base.Setup();
             chartPage = new ChartPage(driver);
-
-            test = extent.CreateTest(TestContext.CurrentContext.Test.Name).Info("Setup for RYM Chart Page Tests");
         }
 
         [Test]

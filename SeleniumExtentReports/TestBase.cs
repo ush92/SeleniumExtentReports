@@ -23,17 +23,31 @@ namespace Selenium
         [SetUp]
         public virtual void Setup()
         {
+            InitializeDriver();
+            InitializeTestSettings();
+            InitializeExtentReports();
+        }
+
+        private void InitializeDriver()
+        {
             driver = new ChromeDriver();
             driver.Manage().Window.Maximize();
+        }
 
-            testName = TestContext.CurrentContext.Test.ClassName.Split('.').Last();
+        private void InitializeTestSettings()
+        {
+            testName = TestContext.CurrentContext.Test?.ClassName?.Split('.').Last() ?? "UnknownTest";
             var testExecutionTime = DateTime.Now.ToString("yyyy-MM-dd_HH-mm-ss").Replace(':', '-');
             baseDirectory = Path.Combine(@"D:\TestResults\", testName, testExecutionTime);
             Directory.CreateDirectory(baseDirectory);
+        }
 
+        private void InitializeExtentReports()
+        {
             var reportPath = Path.Combine(baseDirectory, "ExtentReport.html");
             var htmlReporter = new ExtentSparkReporter(reportPath);
             extent.AttachReporter(htmlReporter);
+            test = extent.CreateTest(TestContext.CurrentContext.Test.Name);
         }
 
         protected string TakeScreenshot(string stepName)
@@ -56,12 +70,12 @@ namespace Selenium
             try
             {
                 assertionAction.Invoke();
-                var screenshotPath = TakeScreenshot("Success_" + testName);
+                var screenshotPath = TakeScreenshot("Passed_" + testName);
                 test.Pass(successMessage).AddScreenCaptureFromPath(screenshotPath);
             }
             catch (Exception ex)
             {
-                var screenshotPath = TakeScreenshot("Failure_" + testName);
+                var screenshotPath = TakeScreenshot("Failed_" + testName);
                 test.Fail($"{failureMessage}<br>{ex.Message}<br>").AddScreenCaptureFromPath(screenshotPath);
                 throw;
             }
@@ -71,23 +85,18 @@ namespace Selenium
         public void Teardown()
         {
             var status = TestContext.CurrentContext.Result.Outcome.Status;
-            var stackTrace = "<pre>" + TestContext.CurrentContext.Result.StackTrace + "</pre>";
-            var errorMessage = TestContext.CurrentContext.Result.Message;
+            var message = TestContext.CurrentContext.Result.Message;
 
             if (status == TestStatus.Failed)
             {
-                test.Fail(stackTrace + errorMessage);
+                test.Fail(message);
             }
             else if (status == TestStatus.Passed)
             {
                 test.Pass("Test passed successfully.");
             }
 
-            if (driver != null)
-            {
-                driver.Quit();
-            }
-
+            driver.Quit();
             extent.Flush();
         }
     }
