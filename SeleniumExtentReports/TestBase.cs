@@ -70,13 +70,13 @@ namespace Selenium
             try
             {
                 assertionAction.Invoke();
-                var screenshotPath = TakeScreenshot("Passed_" + testName);
-                test.Pass(successMessage).AddScreenCaptureFromPath(screenshotPath);
+                var screenshotPath = TakeScreenshot("Assertion_Passed_" + testName);
+                test.Pass(successMessage, MediaEntityBuilder.CreateScreenCaptureFromPath(screenshotPath).Build());
             }
             catch (Exception ex)
             {
-                var screenshotPath = TakeScreenshot("Failed_" + testName);
-                test.Fail($"{failureMessage}<br>{ex.Message}<br>").AddScreenCaptureFromPath(screenshotPath);
+                var screenshotPath = TakeScreenshot("Assertion_Failed_" + testName);
+                test.Fail($"{failureMessage}<br>{ex.Message}<br>", MediaEntityBuilder.CreateScreenCaptureFromPath(screenshotPath).Build());
                 throw;
             }
         }
@@ -87,13 +87,14 @@ namespace Selenium
             var status = TestContext.CurrentContext.Result.Outcome.Status;
             var message = TestContext.CurrentContext.Result.Message;
 
-            if (status == TestStatus.Failed)
+            switch (status)
             {
-                test.Fail(message);
-            }
-            else if (status == TestStatus.Passed)
-            {
-                test.Pass("Test passed successfully.");
+                case TestStatus.Failed:
+                    test.Fail(message);
+                    break;
+                case TestStatus.Passed:
+                    test.Pass("Test passed successfully.");
+                    break;
             }
 
             driver.Quit();
