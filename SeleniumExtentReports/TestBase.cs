@@ -43,12 +43,12 @@ namespace Selenium
 
             var screenshotFileName = $"{stepName}_{Guid.NewGuid()}.png";
             var screenshotFilePath = Path.Combine(screenshotDirectory, screenshotFileName);
+            var relativeScreenshotPath = screenshotFilePath.Substring(baseDirectory.Length + 1).Replace("\\", "/");
 
             var screenshot = ((ITakesScreenshot)driver).GetScreenshot();
             screenshot.SaveAsFile(screenshotFilePath);
 
-            test.AddScreenCaptureFromPath(screenshotFilePath);
-            return screenshotFilePath;
+            return relativeScreenshotPath;
         }
 
         protected void ExecuteAssertion(Action assertionAction, string successMessage, string failureMessage)
@@ -56,7 +56,8 @@ namespace Selenium
             try
             {
                 assertionAction.Invoke();
-                test.Pass(successMessage);
+                var screenshotPath = TakeScreenshot("Success_" + testName);
+                test.Pass(successMessage).AddScreenCaptureFromPath(screenshotPath);
             }
             catch (Exception ex)
             {
