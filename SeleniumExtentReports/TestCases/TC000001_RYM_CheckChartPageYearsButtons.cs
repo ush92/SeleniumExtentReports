@@ -7,13 +7,13 @@ namespace Selenium.TestCases
 {
     public class TC000001_RYM_CheckChartPageYearsButtons : TestBase
     {
-        private ChartPage chartPage;
+        private ChartPageObject chartPage;
 
         [SetUp]
         public override void Setup()
         {
             base.Setup();
-            chartPage = new ChartPage(driver);
+            chartPage = new ChartPageObject(driver);
         }
 
         [Test]
