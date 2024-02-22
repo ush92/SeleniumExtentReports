@@ -57,5 +57,46 @@ namespace SeleniumExtentReports.PageObjects
         {
             driver.Navigate().GoToUrl(url);
         }
+
+        public void ClickLinkByClassAndHref(string className, string hrefValue)
+        {
+            var link = driver.FindElement(By.CssSelector($"a.{className}[href='{hrefValue}']"));
+            link.Click();
+        }
+
+        public void CloseAdsByClass(List<string> classNames)
+        {
+            foreach (var className in classNames)
+            {
+                var adsToClose = driver.FindElements(By.XPath($"//div[contains(@class, '{className}')]"));
+
+                foreach (var ad in adsToClose)
+                {
+                    try
+                    {
+                        var adLocator = By.XPath($"//div[contains(@class, '{className}') and not(contains(@class, 'hidden'))]");
+
+                        WaitForElementClickable(adLocator);
+
+                        if (ad.Displayed && ad.Enabled)
+                        {
+                            ad.Click();
+                        }
+                    }
+                    catch (NoSuchElementException)
+                    {
+                        Console.WriteLine($"Ad with class '{className}' didn't appear.");
+                    }
+                    catch (ElementClickInterceptedException)
+                    {
+                        Console.WriteLine($"Ad with class '{className}' was not clickable.");
+                    }
+                    catch (WebDriverTimeoutException)
+                    {
+                        Console.WriteLine($"Timeout waiting for ad with class '{className}' to become clickable.");
+                    }
+                }
+            }
+        }
     }
 }
